@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beta Graduation Day</title>
+<meta name="description" content="APM Lab: which new Beta data connectors graduate to GA? A Bayesian Beta-Binomial Monte Carlo decision room by Shriya Shekatkar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Patrick+Hand+SC&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Pin 1 (hero): iridescent affirmation card */
+  --lav:#C9A6F0; --pinkglow:#F6B8DA; --aurora:#3FD9C2; --violet:#7A3FE0; --olive:#4F6A1A; --olive-hi:#9DBB4C; --olive-ink:#2B3A0C;
+  /* Pin 2 (cards/buttons): black ink block-print stamps on paper */
+  --ink:#141414; --paper:#F3E7CF; --blush:#EBCFC0; --rust:#9E3A2E;
+  /* Pin 3 (KPI badges): blossom tree + quiet serif on white */
+  --white:#FFFFFF; --bloom:#D98AB0; --bloom-lt:#F1C6DA; --bark:#5A4034; --serif-ink:#2B2B2B;
+  /* Pin 4 (simulation room): crayon-grain cream panels, pinks and reds */
+  --cream:#F1E6D3; --heart:#E58BA8; --red:#C7384F; --magenta:#A82A78; --soil:#6B3A2E; --sprout:#4F7F2E;
+  --text:#1D1A22; --muted:#5A5363; --bg:#FBF6EE;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:16px/1.6 Inter,system-ui,sans-serif;overflow-x:hidden}
+a{color:var(--magenta)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+h2{font:700 clamp(26px,4vw,38px)/1.15 Fredoka,sans-serif;margin:0 0 6px}
+.kicker{font:600 12px/1 JetBrains Mono,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+section{padding:56px 0}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.22;mix-blend-mode:multiply}
+
+/* ---------- HERO (Pin 1) ---------- */
+.hero{position:relative;overflow:hidden;background:
+  radial-gradient(120% 80% at 80% 0%, #EBD9FF 0%, transparent 55%),
+  radial-gradient(90% 70% at 10% 100%, var(--pinkglow) 0%, transparent 60%),
+  linear-gradient(160deg,#B796F2 0%,#D9B5F2 45%,#F7C4DE 100%);
+  padding:64px 0 72px;isolation:isolate}
+.hero svg.aurora{position:absolute;left:-10%;top:-30px;width:120%;height:260px;z-index:-1}
+.hero .spark{position:absolute;z-index:-1}
+.hero h1{font:700 clamp(38px,7.4vw,84px)/1.02 Fredoka,sans-serif;margin:18px 0 18px;color:var(--olive-hi);
+  -webkit-text-stroke:2px var(--olive-ink);paint-order:stroke fill;text-shadow:0 3px 0 var(--olive-ink),0 0 24px rgba(255,255,255,.55);max-width:14ch}
+.hero .launch{display:inline-block;background:rgba(255,255,255,.82);border:2px solid var(--ink);border-radius:999px;padding:6px 14px;font-weight:600;font-size:14px;color:var(--text)}
+.hero .launch a{color:#5B1FB8}
+.hero .who{margin-top:22px;font:600 15px/1.4 Inter;color:#2A1640}
+.hero .who b{font:700 20px Fredoka}
+.hero .sub{max-width:60ch;font-size:17px;color:#2A1640;background:rgba(255,255,255,.55);padding:10px 14px;border-radius:14px}
+@keyframes twinkle{0%,100%{transform:scale(.6) rotate(0);opacity:.5}50%{transform:scale(1.1) rotate(20deg);opacity:1}}
+@keyframes drift{0%{transform:translateX(0)}50%{transform:translateX(-30px)}100%{transform:translateX(0)}}
+.hero .spark{animation:twinkle 3.2s ease-in-out infinite}
+.hero svg.aurora g{animation:drift 14s ease-in-out infinite}
+
+/* ---------- CARDS + BUTTONS (Pin 2) ---------- */
+.board{columns:2 300px;column-gap:18px}
+.card{break-inside:avoid;position:relative;background:var(--paper);border:2.5px solid var(--ink);border-radius:6px;padding:20px 20px 18px;margin:0 0 18px;
+  box-shadow:5px 5px 0 var(--ink);overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:radial-gradient(var(--ink) .6px,transparent .9px);background-size:6px 6px;
+  -webkit-mask-image:linear-gradient(135deg,transparent 55%,#000 100%);mask-image:linear-gradient(135deg,transparent 55%,#000 100%)}
+.card.blush{background:var(--blush)}
+.card h3{font:700 20px/1.2 Fredoka;margin:0 0 8px;padding-right:44px}
+.card .stamp{position:absolute;top:10px;right:10px;width:36px;height:36px}
+.card .cap{font:600 11px/1.3 JetBrains Mono;letter-spacing:.08em;text-transform:uppercase;color:#4A3F33;margin-top:10px;border-top:1.5px dashed var(--ink);padding-top:8px}
+.card ul{margin:6px 0 0;padding-left:18px}
+.card li{margin:3px 0}
+table.guard{width:100%;border-collapse:collapse;font-size:14px}
+table.guard th,table.guard td{border-bottom:1.5px solid var(--ink);padding:6px 4px;text-align:left;vertical-align:top}
+table.guard th{font:600 11px JetBrains Mono;text-transform:uppercase;letter-spacing:.06em}
+.btn{font:700 15px Fredoka;background:var(--ink);color:var(--paper);border:2.5px solid var(--ink);border-radius:4px;padding:10px 16px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--rust);position:relative;transition:transform .12s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--rust)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--rust)}
+.btn.ghost{background:var(--paper);color:var(--ink)}
+.btn:focus-visible,input:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+.chip{display:inline-block;font:600 12px JetBrains Mono;border:1.5px solid var(--ink);border-radius:999px;padding:2px 9px;margin:2px 4px 2px 0;background:#fff}
+.chip.pass{background:#DDEFD0}.chip.fail{background:#F7D0D6}
+
+/* ---------- SIMULATION ROOM (Pin 4) ---------- */
+.room{position:relative;background:var(--cream);border-radius:18px;padding:22px;border:3px solid var(--soil);
+  box-shadow:inset 0 0 0 6px var(--cream),inset 0 0 0 8px rgba(107,58,46,.35)}
+.room h2{font:400 clamp(26px,4.6vw,40px)/1.1 "Patrick Hand SC",cursive;letter-spacing:.06em;color:var(--soil)}
+.room .hand{font:400 19px/1.3 "Patrick Hand SC",cursive;letter-spacing:.05em;color:var(--soil)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 22px;margin:16px 0}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font:400 18px "Patrick Hand SC",cursive;color:var(--soil);letter-spacing:.04em}
+.ctl output{font:600 14px JetBrains Mono;color:var(--magenta)}
+.ctl small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35}
+input[type=range]{width:100%;accent-color:var(--red);height:28px}
+.canvas-box{position:relative;background:#FFF9EF;border:2.5px solid var(--soil);border-radius:12px;overflow:hidden}
+canvas{display:block;width:100%;height:auto}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+.sprouts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.sprout{background:#FFF4E6;border:2px solid var(--soil);border-radius:12px;text-align:center;padding:6px 4px 8px}
+.sprout svg{width:100%;height:96px}
+.sprout .nm{font:400 17px "Patrick Hand SC",cursive;color:var(--soil)}
+
+/* ---------- KPI BADGES (Pin 3) ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0 6px}
+.kpi{position:relative;background:var(--white);border:1px solid #E7D7DF;border-radius:16px;padding:52px 14px 14px;text-align:center;box-shadow:0 8px 22px rgba(217,138,176,.18)}
+.kpi svg.bloom{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:120px;height:64px}
+.kpi .lbl{font:italic 400 14px/1.3 "Libre Caslon Text",serif;color:var(--serif-ink)}
+.kpi .val{font:700 30px/1.1 "Libre Caslon Text",serif;color:var(--serif-ink);margin:4px 0}
+.kpi .sm{font:400 13px "Libre Caslon Text",serif;color:#55474E}
+.kpi .verdict{display:inline-block;margin-top:6px;font:600 12px JetBrains Mono;letter-spacing:.06em;padding:3px 10px;border-radius:999px}
+.v-ga{background:#DDEFD0;color:#1F4A12}.v-hold{background:#FBE3C4;color:#6B3A08}.v-no{background:#F7D0D6;color:#7A1426}
+
+/* ---------- MEMO ---------- */
+.memo{background:var(--paper);border:2.5px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:26px;border-radius:6px;position:relative}
+.memo h3{font:700 18px Fredoka;margin:18px 0 4px}
+.memo .vp{background:var(--ink);color:var(--paper);padding:14px 16px;border-radius:4px;font:600 17px/1.45 Inter;margin-top:16px}
+.memo .vp b{color:#F6B8DA}
+.memo .meta{font:600 12px JetBrains Mono;color:#4A3F33}
+
+/* ---------- MATH + CODE ---------- */
+.math p{max-width:72ch}
+.eq{font:600 15px JetBrains Mono;background:#fff;border:2px dashed var(--ink);padding:10px 12px;border-radius:6px;overflow-x:auto;white-space:nowrap}
+pre{background:#17121C;color:#F3E7CF;padding:16px;border-radius:8px;overflow-x:auto;font:13px/1.55 JetBrains Mono;border:2.5px solid var(--ink);box-shadow:5px 5px 0 var(--rust)}
+pre .c{color:#C9B3E8}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+
+footer{background:var(--ink);color:#EDE3D0;padding:30px 0 40px;margin-top:30px}
+footer a{color:#F6B8DA}
+footer .credits{font-size:11px;color:#B9AE9C;margin-top:12px;line-height:1.6}
+footer .credits a{color:#D9C7E8}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="grainF"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+  <symbol id="stampA" viewBox="0 0 40 40"><rect x="2" y="2" width="36" height="36" rx="3" fill="#141414"/><path d="M20 6 L34 20 L20 34 L6 20Z" fill="#F3E7CF"/><circle cx="20" cy="20" r="6" fill="#141414"/><path d="M20 10v4M20 26v4M10 20h4M26 20h4" stroke="#141414" stroke-width="2.4"/></symbol>
+  <symbol id="stampB" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#141414"/><g fill="#F3E7CF"><ellipse cx="20" cy="11" rx="4" ry="7"/><ellipse cx="20" cy="29" rx="4" ry="7"/><ellipse cx="11" cy="20" rx="7" ry="4"/><ellipse cx="29" cy="20" rx="7" ry="4"/></g><circle cx="20" cy="20" r="3.5" fill="#9E3A2E"/></symbol>
+  <symbol id="stampC" viewBox="0 0 40 40"><path d="M20 2 C30 8 38 14 38 22 C38 32 30 38 20 38 C10 38 2 32 2 22 C2 14 10 8 20 2Z" fill="#141414"/><path d="M20 10v24M20 18c-5-2-8-6-8-6M20 18c5-2 8-6 8-6M20 26c-5-2-8-6-8-6M20 26c5-2 8-6 8-6" stroke="#F3E7CF" stroke-width="2.2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="bloom" viewBox="0 0 120 64"><g>
+    <circle cx="22" cy="40" r="13" fill="#F1C6DA"/><circle cx="40" cy="26" r="16" fill="#D98AB0"/><circle cx="60" cy="20" r="18" fill="#F1C6DA"/><circle cx="80" cy="26" r="16" fill="#D98AB0"/><circle cx="98" cy="40" r="13" fill="#F1C6DA"/>
+    <circle cx="50" cy="38" r="11" fill="#E9A6C6"/><circle cx="72" cy="38" r="11" fill="#E9A6C6"/>
+    <g fill="#fff" opacity=".85"><circle cx="34" cy="22" r="2"/><circle cx="58" cy="12" r="2.4"/><circle cx="86" cy="22" r="2"/><circle cx="66" cy="30" r="1.6"/><circle cx="26" cy="36" r="1.6"/><circle cx="96" cy="36" r="1.6"/></g>
+    <path d="M60 46 L60 62 M60 52 L50 46 M60 55 L70 48" stroke="#5A4034" stroke-width="2.4" stroke-linecap="round"/></g></symbol>
+  <symbol id="sparkle" viewBox="0 0 20 20"><path d="M10 0 C11 7 13 9 20 10 C13 11 11 13 10 20 C9 13 7 11 0 10 C7 9 9 7 10 0Z" fill="#fff"/></symbol>
+</svg>
+
+<header class="hero">
+  <svg class="aurora" viewBox="0 0 1200 260" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="au" x1="0" x2="1"><stop offset="0" stop-color="#7A3FE0" stop-opacity="0"/><stop offset=".3" stop-color="#7A3FE0"/><stop offset=".6" stop-color="#3FD9C2"/><stop offset="1" stop-color="#3FD9C2" stop-opacity="0"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="6"/></filter></defs>
+    <g><path d="M-20 170 C200 40 380 210 600 110 S 980 30 1220 120" stroke="url(#au)" stroke-width="46" fill="none" filter="url(#blur)" opacity=".85"/>
+    <path d="M-20 150 C220 30 380 190 600 95 S 980 20 1220 100" stroke="#B9FFF2" stroke-width="5" fill="none" opacity=".7"/></g>
+  </svg>
+  <svg class="spark" style="left:72%;top:46px;width:34px;height:34px" aria-hidden="true"><use href="#sparkle"/></svg>
+  <svg class="spark" style="left:88%;top:150px;width:22px;height:22px;animation-delay:.8s" aria-hidden="true"><use href="#sparkle"/></svg>
+  <svg class="spark" style="left:58%;top:220px;width:16px;height:16px;animation-delay:1.6s" aria-hidden="true"><use href="#sparkle"/></svg>
+  <svg class="spark" style="left:8%;top:30px;width:20px;height:20px;animation-delay:2.2s" aria-hidden="true"><use href="#sparkle"/></svg>
+  <svg class="spark" style="left:82%;top:320px;width:28px;height:28px;animation-delay:1.1s" aria-hidden="true"><use href="#sparkle"/></svg>
+  <svg class="grain" width="100%" height="100%" aria-hidden="true"><rect width="100%" height="100%" filter="url(#grainF)"/></svg>
+  <div class="wrap">
+    <p class="kicker" style="color:#3A1F5C">APM Lab · Project · Launch readiness</p>
+    <span class="launch">Mirrors: <a href="https://docs.databricks.com/aws/en/release-notes/product/2026/october" target="_blank" rel="noopener">Databricks Lakeflow Connect adds SurveyMonkey, Oracle Eloqua &amp; Asana connectors in Beta (Oct 20, 2026)</a></span>
+    <h1>I graduate what the data has earned.</h1>
+    <p class="sub">Three connectors just entered Beta. Before the quarter ends someone has to say which of them become GA. This is the room where I make that call with a posterior, not a vibe.</p>
+    <p class="who"><b>Shriya Shekatkar</b><br>UCLA · Stats 102C Monte Carlo Methods</p>
+  </div>
+</header>
+
+<main>
+<section id="decision"><div class="wrap">
+  <p class="kicker">01 · The decision</p>
+  <h2>Which Beta connectors get their cap and gown?</h2>
+  <p style="max-width:70ch">I'm the PM for managed ingestion connectors. Each new connector starts in Beta, gated by workspace admins. GA means a support commitment, an SLA and default visibility to every customer. Graduate too early and we break customer pipelines under our own name. Graduate too late and the connector sits behind a preview toggle that most admins never flip.</p>
+  <div class="board" style="margin-top:22px">
+    <article class="card"><svg class="stamp" aria-hidden="true"><use href="#stampA"/></svg>
+      <h3>Customer problem</h3>
+      <p>Marketing-ops and PMO analysts want survey, campaign and project-tracker data next to their warehouse tables without writing and babysitting API scripts. A Beta label tells their platform team "not for production," so the data never ships to the dashboards that need it.</p>
+      <p class="cap">Pinned to: who hurts today</p></article>
+    <article class="card blush"><svg class="stamp" aria-hidden="true"><use href="#stampB"/></svg>
+      <h3>Proposed change</h3>
+      <p>Replace "we'll GA when it feels stable" with a written gate: a connector graduates when the <b>posterior probability that its pipeline-update success rate clears the GA bar</b> is at least the confidence level, and every guardrail passes. One rule, applied to all three.</p>
+      <p class="cap">Pinned to: the rule, not the opinion</p></article>
+    <article class="card"><svg class="stamp" aria-hidden="true"><use href="#stampC"/></svg>
+      <h3>Success metric</h3>
+      <p><b>Pipeline-update success rate</b> (successful incremental updates ÷ all scheduled updates) ≥ <b>99.0%</b>, with P(rate ≥ bar | data) ≥ <b>90%</b>. Downstream: production pipelines per connector 60 days after GA.</p>
+      <p class="cap">Pinned to: one number we'd defend</p></article>
+    <article class="card blush"><svg class="stamp" aria-hidden="true"><use href="#stampA"/></svg>
+      <h3>Guardrails (all must pass)</h3>
+      <table class="guard" aria-label="Guardrail metrics and thresholds">
+        <tr><th>Guardrail</th><th>Threshold</th></tr>
+        <tr><td>Support tickets per 100 pipelines / month</td><td>≤ 1.5</td></tr>
+        <tr><td>P95 data freshness (incremental)</td><td>≤ 30 min</td></tr>
+        <tr><td>OAuth token-refresh failures</td><td>≤ 0.3%</td></tr>
+        <tr><td>Schema-drift breakages per 1k updates</td><td>≤ 2.0</td></tr>
+      </table>
+      <p class="cap">Pinned to: what we refuse to break</p></article>
+    <article class="card"><svg class="stamp" aria-hidden="true"><use href="#stampB"/></svg>
+      <h3>Stakeholders</h3>
+      <ul><li><b>Ingestion engineering</b>: owns fixes and on-call</li><li><b>Support &amp; field engineering</b>: absorbs tickets after GA</li><li><b>Workspace admins</b>: decide Preview toggles today</li><li><b>Docs &amp; PMM</b>: GA announcement and pricing page</li><li><b>Security / governance</b>: OAuth scopes, Unity Catalog lineage</li></ul>
+      <p class="cap">Pinned to: who signs the readiness review</p></article>
+  </div>
+</div></section>
+
+<section id="sim" style="padding-top:10px"><div class="wrap">
+  <p class="kicker">02 · Live simulation</p>
+  <div class="room">
+    <svg class="grain" width="100%" height="100%" aria-hidden="true" style="border-radius:18px;opacity:.18"><rect width="100%" height="100%" filter="url(#grainF)"/></svg>
+    <h2>Pooled together… judged alone</h2>
+    <p class="hand">Each connector borrows strength from past launches, then stands on its own Beta data.</p>
+    <div class="controls">
+      <div class="ctl"><label for="weeks">Weeks of Beta data <output id="o-weeks"></output></label><input id="weeks" type="range" min="1" max="12" value="4"><small>More weeks = more pipeline updates observed.</small></div>
+      <div class="ctl"><label for="k">Prior strength (pseudo-updates) <output id="o-k"></output></label><input id="k" type="range" min="0" max="4000" step="100" value="800"><small>How much past connector launches count. 0 = flat Beta(1,1) prior.</small></div>
+      <div class="ctl"><label for="bar">GA success-rate bar <output id="o-bar"></output></label><input id="bar" type="range" min="98.0" max="99.8" step="0.1" value="99.0"><small>The SLA-backed floor we promise at GA.</small></div>
+      <div class="ctl"><label for="conf">Required confidence <output id="o-conf"></output></label><input id="conf" type="range" min="70" max="98" step="1" value="90"><small>P(rate ≥ bar | data) needed to graduate.</small></div>
+    </div>
+    <div class="canvas-box"><canvas id="cv" width="1040" height="420" role="img" aria-label="Animated dots showing posterior draws of each connector's success rate, stacked into histograms, with a dashed line at the GA bar"></canvas></div>
+    <div class="btnrow">
+      <button class="btn" id="resim">New Beta quarter (reseed data)</button>
+      <button class="btn ghost" id="redraw">Re-draw posterior</button>
+      <span class="hand" id="seedlbl" style="align-self:center"></span>
+    </div>
+    <div class="kpis" id="kpis" aria-live="polite"></div>
+    <div class="sprouts" id="sprouts" aria-hidden="true"></div>
+  </div>
+</div></section>
+
+<section id="memo" style="padding-top:20px"><div class="wrap">
+  <p class="kicker">03 · Director memo (rewrites itself)</p>
+  <div class="memo" id="memobox" aria-live="polite"></div>
+</div></section>
+
+<section id="math" class="math"><div class="wrap">
+  <p class="kicker">04 · The math, from my Monte Carlo course</p>
+  <h2>Beta prior + Binomial data = a Beta you can sample</h2>
+  <div class="board" style="margin-top:16px">
+  <article class="card"><h3>Two ways to think about a success rate</h3>
+  <p>A frequentist treats a connector's true success rate as one fixed number and asks how often an interval-making recipe would cover it across repeated Betas. A Bayesian treats the rate itself as uncertain and keeps a whole distribution over it. For a GA call I want the second: the question a VP asks is literally "how likely is it that this connector is good enough?"</p></article>
+  <article class="card blush"><h3>Conjugacy, in one line</h3>
+  <p>If my belief before Beta is Beta(α, β) and I then see <i>s</i> successful updates out of <i>n</i>, my belief after is still a Beta:</p>
+  <p class="eq">posterior = Beta(α + s, β + n − s)</p>
+  <p>Posterior ∝ prior × likelihood, and the Beta shape survives the multiplication. No integrals to solve by hand.</p></article>
+  <article class="card"><h3>The prior is a weighted vote</h3>
+  <p>Write the prior as a mean <i>m</i> (past launches averaged 98.9%) and a strength <i>k</i> (how many pseudo-updates that history is worth). The posterior mean is</p>
+  <p class="eq">(k·m + s) / (k + n)</p>
+  <p>a weighted average of history and fresh data. Early in Beta, history dominates; by week 12, the connector speaks for itself. Set <i>k</i>=0 (flat prior) and the most likely value equals the plain observed rate, the MLE.</p></article>
+  <article class="card blush"><h3>Why Monte Carlo at all?</h3>
+  <p>I draw 6,000 rates from each posterior (seeded, so the memo is reproducible). The share of draws above the bar estimates P(rate ≥ bar); sorting the draws gives a 90% <b>quantile</b> credible interval (5th to 95th percentile). An HPD interval would instead be the narrowest 90% window, nearly identical here because these posteriors are close to symmetric. The same draws also give the expected shortfall below the bar, which is the cost of graduating a connector that isn't ready. Pooling across connectors through one shared prior is the first step toward a hierarchical model, which is where MCMC comes in.</p></article>
+  </div>
+</div></section>
+
+<section id="real" style="padding-top:10px"><div class="wrap">
+  <p class="kicker">05 · How I'd run it on real data</p>
+  <h2>SQL for the counts, Python for the posterior</h2>
+  <div class="two" style="margin-top:14px">
+<pre><span class="c">-- Beta-period update outcomes per connector (illustrative tables)</span>
+WITH updates AS (
+  SELECT connector_type,
+         date_trunc('week', update_start) AS wk,
+         result_state
+  FROM   ingest_ops.pipeline_update_log
+  WHERE  release_stage = 'BETA'
+    AND  connector_type IN ('surveymonkey','eloqua','asana')
+    AND  update_start &gt;= current_date() - INTERVAL 84 DAYS
+)
+SELECT connector_type,
+       count(*)                                        AS n_updates,
+       count_if(result_state = 'COMPLETED')            AS n_success,
+       round(n_success / n_updates * 100, 3)           AS success_pct,
+       count(DISTINCT wk)                              AS weeks_observed
+FROM   updates
+GROUP  BY connector_type
+ORDER  BY success_pct DESC;</pre>
+<pre><span class="c"># Beta-Binomial GA gate, seeded Monte Carlo</span>
+import numpy as np
+rng = np.random.default_rng(2026)
+
+m, k = 0.989, 800          <span class="c"># prior from past launches</span>
+bar, conf = 0.990, 0.90
+
+df = spark.table("ingest_ops.beta_outcomes").toPandas()
+for r in df.itertuples():
+    a = k*m + r.n_success
+    b = k*(1-m) + r.n_updates - r.n_success
+    draws = rng.beta(a, b, size=6000)
+    p_ok = (draws &gt;= bar).mean()
+    lo, hi = np.quantile(draws, [0.05, 0.95])
+    short = np.maximum(bar - draws, 0).mean()
+    verdict = "GA" if p_ok &gt;= conf else "HOLD"
+    print(f"{r.connector_type:13s} P={p_ok:.2f} "
+          f"CrI=[{lo:.4f},{hi:.4f}] "
+          f"loss={short:.5f} -&gt; {verdict}")</pre>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p style="margin:0 0 6px;font-weight:600">Unofficial concept prototype by Shriya Shekatkar. All data is simulated. Not affiliated with any company.</p>
+  <p style="margin:0">Part of <a href="https://shriyashekatkar25-byte.github.io/apm-lab/">APM Lab, the full gallery</a> · Method: Bayesian Beta-Binomial (Stats 102C, Ch. 2)</p>
+  <p class="credits">Design inspired by:
+    <a href="https://www.pinterest.com/pin/1000643610980277688/" target="_blank" rel="noopener">#love#kindness#affirmation# (Crafartill)</a> ·
+    <a href="https://www.pinterest.com/pin/465770786484047306/" target="_blank" rel="noopener">stampies (collage by Chavez Buckley)</a> ·
+    <a href="https://www.pinterest.com/pin/264093965645664676/" target="_blank" rel="noopener">anything can be an altar (Danielle Janaye)</a> ·
+    <a href="https://www.pinterest.com/pin/934708097649283764/" target="_blank" rel="noopener">i love you; and i love myself too (pixiedust)</a>
+  </p>
+</div></footer>
+
+<script>
+(function(){
+"use strict";
+const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// ---------- seeded RNG (mulberry32) ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+let rng;
+function normal(){ // Box-Muller
+  let u=0,v=0; while(u===0)u=rng(); v=rng();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function gamma(a){ // Marsaglia-Tsang
+  if(a<1){ return gamma(a+1)*Math.pow(rng(),1/a); }
+  const d=a-1/3,c=1/Math.sqrt(9*d);
+  for(;;){ let x,v; do{x=normal();v=1+c*x;}while(v<=0); v=v*v*v; const u=rng();
+    if(u<1-0.0331*x*x*x*x) return d*v;
+    if(Math.log(u)<0.5*x*x+d*(1-v+Math.log(v))) return d*v; }
+}
+function beta(a,b){const x=gamma(a),y=gamma(b);return x/(x+y);}
+
+// ---------- synthetic world ----------
+const C=[
+  {id:'sm', name:'SurveyMonkey', perWeek:1050, trueRate:0.9942, color:'#C7384F',
+   guard:{tickets:0.9, fresh:18, oauth:0.12, drift:1.1}},
+  {id:'el', name:'Oracle Eloqua', perWeek:610, trueRate:0.9874, color:'#A82A78',
+   guard:{tickets:1.9, fresh:34, oauth:0.21, drift:2.6}},
+  {id:'as', name:'Asana', perWeek:280, trueRate:0.9951, color:'#4F7F2E',
+   guard:{tickets:0.7, fresh:22, oauth:0.34, drift:0.8}}
+];
+const G=[
+  {k:'tickets',label:'Tickets/100 pipelines',max:1.5,fmt:v=>v.toFixed(1)},
+  {k:'fresh',label:'P95 freshness',max:30,fmt:v=>v+' min'},
+  {k:'oauth',label:'OAuth refresh fail',max:0.3,fmt:v=>v.toFixed(2)+'%'},
+  {k:'drift',label:'Schema-drift /1k',max:2.0,fmt:v=>v.toFixed(1)}
+];
+const PRIOR_M=0.989, N_DRAWS=6000;
+let dataSeed=20261020, drawSeed=7;
+const $=id=>document.getElementById(id);
+const el={weeks:$('weeks'),k:$('k'),bar:$('bar'),conf:$('conf')};
+
+function genData(){
+  rng=mulberry32(dataSeed);
+  const W=+el.weeks.value;
+  C.forEach(c=>{
+    const n=c.perWeek*W; let f=0;
+    for(let i=0;i<n;i++){ if(rng()>c.trueRate) f++; }
+    c.n=n; c.s=n-f;
+  });
+}
+function posterior(){
+  rng=mulberry32(drawSeed);
+  const k=+el.k.value, bar=+el.bar.value/100;
+  C.forEach(c=>{
+    const a0=k>0?k*PRIOR_M:1, b0=k>0?k*(1-PRIOR_M):1;
+    c.a=a0+c.s; c.b=b0+c.n-c.s;
+    const d=new Float64Array(N_DRAWS);
+    let above=0, short=0, sum=0;
+    for(let i=0;i<N_DRAWS;i++){const x=beta(c.a,c.b);d[i]=x;sum+=x;if(x>=bar)above++;short+=Math.max(bar-x,0);}
+    c.draws=d; c.pOK=above/N_DRAWS; c.loss=short/N_DRAWS; c.mean=sum/N_DRAWS;
+    const s=Array.from(d).sort((x,y)=>x-y);
+    c.lo=s[Math.floor(.05*N_DRAWS)]; c.hi=s[Math.floor(.95*N_DRAWS)];
+    c.obs=c.s/c.n;
+    c.guardFails=G.filter(g=>c.guard[g.k]>g.max).map(g=>g.label);
+  });
+}
+function verdict(c){
+  const conf=+el.conf.value/100;
+  if(c.pOK>=conf && c.guardFails.length===0) return 'GA';
+  if(c.pOK>=conf) return 'HOLD-GUARD';
+  if(c.pOK>=conf-0.25) return 'EXTEND';
+  return 'NOT-READY';
+}
+const VLABEL={'GA':['Graduate to GA','v-ga'],'HOLD-GUARD':['Hold: guardrail','v-hold'],'EXTEND':['Extend Beta','v-hold'],'NOT-READY':['Not ready','v-no']};
+const pct=(x,d=2)=>(x*100).toFixed(d)+'%';
+
+// ---------- canvas ----------
+const cv=$('cv'), ctx=cv.getContext('2d');
+let anim=null, shown=0;
+function sizeCanvas(){
+  const w=cv.parentElement.clientWidth, dpr=window.devicePixelRatio||1;
+  const h=Math.max(300,Math.min(420,w*0.5));
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  cv.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+  cv._w=w; cv._h=h;
+}
+const XMIN=0.975, XMAX=1.0;
+function draw(progress){
+  const w=cv._w,h=cv._h, padL=w<500?10:20, padR=w<500?10:20, top=26, laneH=(h-top-34)/3;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#FFF9EF'; ctx.fillRect(0,0,w,h);
+  const X=v=>padL+(v-XMIN)/(XMAX-XMIN)*(w-padL-padR);
+  // axis ticks
+  ctx.font='12px JetBrains Mono, monospace'; ctx.fillStyle='#5A5363'; ctx.textAlign='center';
+  const step=w<500?0.01:0.005;
+  for(let t=XMIN;t<=XMAX+1e-9;t+=step){ctx.fillText((t*100).toFixed(1)+'%',Math.min(Math.max(X(t),22),w-22),h-10);}
+  const bar=+el.bar.value/100;
+  // GA bar
+  ctx.setLineDash([6,5]); ctx.strokeStyle='#1D1A22'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(X(bar),top-6); ctx.lineTo(X(bar),h-28); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#1D1A22'; ctx.font='600 12px JetBrains Mono, monospace'; ctx.textAlign=X(bar)>w-90?'right':'left';
+  ctx.fillText('GA bar '+(bar*100).toFixed(1)+'%', X(bar)+(X(bar)>w-90?-6:6), top+2);
+  const nb=w<500?50:90, bw=(w-padL-padR)/nb;
+  C.forEach((c,ci)=>{
+    const y0=top+ci*laneH, base=y0+laneH-10;
+    ctx.strokeStyle='rgba(107,58,46,.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(padL,base+.5); ctx.lineTo(w-padR,base+.5); ctx.stroke();
+    ctx.font=(w<500?'15px':'18px')+' "Patrick Hand SC", cursive'; ctx.textAlign='left';
+    const lt=c.name+'  ·  P(≥ bar) '+(c.pOK*100).toFixed(0)+'%', lw=ctx.measureText(lt).width;
+    ctx.fillStyle='rgba(255,249,239,.92)'; ctx.fillRect(padL-2,y0,lw+8,19);
+    ctx.fillStyle='#6B3A2E'; ctx.fillText(lt, padL+2, y0+14);
+    const m=Math.floor(progress*N_DRAWS);
+    const bins=new Array(nb).fill(0);
+    for(let i=0;i<m;i++){const b=Math.floor((c.draws[i]-XMIN)/(XMAX-XMIN)*nb); if(b>=0&&b<nb) bins[b]++;}
+    const maxFull=Math.max(1,...(()=>{const f=new Array(nb).fill(0);for(let i=0;i<N_DRAWS;i++){const b=Math.floor((c.draws[i]-XMIN)/(XMAX-XMIN)*nb);if(b>=0&&b<nb)f[b]++;}return f;})());
+    const hMax=laneH-34;
+    for(let b=0;b<nb;b++){
+      if(!bins[b]) continue;
+      const hh=bins[b]/maxFull*hMax, x=padL+b*bw, mid=XMIN+(b+.5)/nb*(XMAX-XMIN);
+      ctx.fillStyle=mid>=bar?c.color:'rgba(107,58,46,.35)';
+      // crayon-ish stacked dots
+      const r=Math.max(1.6,Math.min(3.2,bw*0.36)), stepY=r*2.1;
+      for(let yy=base-r; yy>base-hh; yy-=stepY){ctx.beginPath();ctx.arc(x+bw/2,yy,r,0,Math.PI*2);ctx.fill();}
+    }
+    // falling dots for flavor
+    if(progress<1){
+      for(let j=0;j<14;j++){const i=Math.min(N_DRAWS-1,m+j*7);const x=X(c.draws[i]);const yy=y0+20+((j*37+m)%Math.max(10,(hMax)));ctx.fillStyle=c.color;ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(x,yy,2.4,0,7);ctx.fill();ctx.globalAlpha=1;}
+    }
+    // observed rate tick
+    if(c.obs>=XMIN){ctx.strokeStyle='#1D1A22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(X(c.obs),base+2);ctx.lineTo(X(c.obs),base+8);ctx.stroke();}
+  });
+}
+function animate(){
+  if(anim) cancelAnimationFrame(anim);
+  if(reduce){ draw(1); return; }
+  const t0=performance.now(), dur=1600;
+  const tick=now=>{const p=Math.min(1,(now-t0)/dur); draw(p); if(p<1) anim=requestAnimationFrame(tick);};
+  anim=requestAnimationFrame(tick);
+}
+
+// ---------- KPIs, sprouts, memo ----------
+function renderKPIs(){
+  const ready=C.filter(c=>verdict(c)==='GA').length;
+  let html=C.map(c=>{const v=verdict(c);return `<div class="kpi"><svg class="bloom" aria-hidden="true"><use href="#bloom"/></svg>
+    <div class="lbl">${c.name}: chance it clears the bar</div><div class="val">${(c.pOK*100).toFixed(0)}%</div>
+    <div class="sm">90% CrI ${pct(c.lo)} – ${pct(c.hi)}<br>${c.n.toLocaleString()} updates · observed ${pct(c.obs)}</div>
+    <span class="verdict ${VLABEL[v][1]}">${VLABEL[v][0]}</span></div>`;}).join('');
+  html+=`<div class="kpi"><svg class="bloom" aria-hidden="true"><use href="#bloom"/></svg><div class="lbl">Ready to graduate this quarter</div><div class="val">${ready} / 3</div><div class="sm">bar ${(+el.bar.value).toFixed(1)}% · confidence ${el.conf.value}% · prior k=${el.k.value}</div></div>`;
+  $('kpis').innerHTML=html;
+  $('sprouts').innerHTML=C.map(c=>{const hgt=10+c.pOK*62, v=verdict(c);
+    const cap=v==='GA'?`<g transform="translate(50 ${86-hgt-14})"><rect x="-13" y="-3" width="26" height="6" fill="#141414" transform="rotate(-6)"/><path d="M-16 -4 L0 -12 L16 -4 L0 4Z" fill="#141414"/><path d="M12 -5 v10" stroke="#C7384F" stroke-width="2"/></g>`:'';
+    return `<div class="sprout"><svg viewBox="0 0 100 96"><rect x="0" y="84" width="100" height="12" fill="#6B3A2E"/><path d="M50 86 Q48 ${86-hgt/2} 50 ${86-hgt}" stroke="#4F7F2E" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="40" cy="${86-hgt*0.55}" rx="9" ry="4.5" fill="#6FA048" transform="rotate(-25 40 ${86-hgt*0.55})"/><ellipse cx="60" cy="${86-hgt*0.75}" rx="9" ry="4.5" fill="#6FA048" transform="rotate(25 60 ${86-hgt*0.75})"/><circle cx="50" cy="${86-hgt-4}" r="7" fill="${c.color}"/>${cap}</svg><div class="nm">${c.name}</div></div>`;}).join('');
+}
+function renderMemo(){
+  const bar=(+el.bar.value).toFixed(1), conf=el.conf.value, W=el.weeks.value, k=+el.k.value;
+  const vs=C.map(c=>({c,v:verdict(c)}));
+  const ga=vs.filter(x=>x.v==='GA').map(x=>x.c.name);
+  const hold=vs.filter(x=>x.v==='HOLD-GUARD');
+  const ext=vs.filter(x=>x.v==='EXTEND'||x.v==='NOT-READY');
+  const list=a=>a.length===0?'none':a.length===1?a[0]:a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+  const decision = ga.length? `Graduate ${list(ga)} to GA at the end of the quarter.` : `Graduate nothing yet. No connector clears a ${bar}% bar with ${conf}% confidence after ${W} week${W>1?'s':''} of Beta.`;
+  const evid=vs.map(({c,v})=>`<li><b>${c.name}</b>: ${c.s.toLocaleString()} of ${c.n.toLocaleString()} updates succeeded (${pct(c.obs)}). Posterior mean ${pct(c.mean)}, 90% credible interval ${pct(c.lo)}–${pct(c.hi)}, P(≥ ${bar}%) = ${(c.pOK*100).toFixed(0)}%. Expected shortfall if shipped: ${(c.loss*1e4).toFixed(1)} bp. Guardrails: ${c.guardFails.length?'<b>fails '+c.guardFails.join(', ')+'</b>':'all pass'}. → ${VLABEL[v][0]}.</li>`).join('');
+  const priorNote = k===0 ? 'I used a flat prior, so the verdicts rest entirely on Beta data; that is honest but noisy for the low-volume connector.' :
+     k>=2500 ? `The prior is strong (k=${k}), worth more updates than the smaller connectors have seen. That leans verdicts toward our historical 98.9%, so I'd pressure-test with a weaker prior before signing.` :
+     `The prior (k=${k}) counts past launches as ${k.toLocaleString()} pseudo-updates at 98.9%, so it steadies the low-volume connector without drowning the high-volume one.`;
+  const risks=[];
+  if(hold.length) risks.push(`${list(hold.map(x=>x.c.name))} clears the reliability bar but breaks a guardrail (${hold.map(x=>x.c.guardFails.join(', ')).join('; ')}). Shipping it would move pain from pipelines to the support queue.`);
+  const lowN=C.filter(c=>c.n<2000);
+  if(lowN.length) risks.push(`${list(lowN.map(c=>c.name))} has under 2,000 updates, so its interval is wide and the prior is doing real work.`);
+  risks.push('Beta users are self-selected early adopters; GA traffic will include messier source accounts and larger historical backfills.');
+  risks.push('Success rate counts updates, not customers: one large tenant failing repeatedly can hide inside a good average. Check per-workspace concentration before GA.');
+  const plan = ga.length ? `GA ${list(ga)} behind a staged rollout: default-visible in 10% of regions for 2 weeks, then everywhere if the weekly posterior stays above ${conf}% and tickets stay ≤ 1.5 per 100 pipelines. Kill switch: revert to Preview gating if any week's P(≥ bar) drops below 60%.` :
+     `Keep all three in Beta for another ${Math.max(2,12-W)} weeks, recompute weekly, and invite 20 more design-partner workspaces per connector to grow n where intervals are widest.`;
+  const next = ext.length ? `Engineering review for ${list(ext.map(x=>x.c.name))}: top three failure codes and a fix plan, due before the next weekly posterior refresh.` : hold.length ? `Fix-it sprint on ${list(hold.map(x=>x.c.guardFails.join(', ')))} for ${list(hold.map(x=>x.c.name))}, then re-gate.` : 'Book the readiness review with Support, Docs and PMM for launch week.';
+  const vp = ga.length===3 ? `All three connectors clear a ${bar}% reliability bar with at least ${conf}% confidence and pass every guardrail, so we graduate them together with a staged rollout and a kill switch.` :
+     ga.length ? `${list(ga)} ${ga.length>1?'are':'is'} ready for GA with at least ${conf}% confidence; the rest stay in Beta until the data, not our optimism, says otherwise.` :
+     `None of the three is ready yet; after ${W} weeks the evidence can't promise ${bar}% reliability, so we extend Beta and grow the sample where it's thinnest.`;
+  $('memobox').innerHTML=`<p class="meta">TO: VP Product, Data Ingestion · FROM: Shriya Shekatkar, APM · RE: Q4 GA gate for new Beta connectors · Seeds ${dataSeed}/${drawSeed}</p>
+  <h3>Decision</h3><p>${decision}</p>
+  <h3>Evidence</h3><ul>${evid}</ul><p>${priorNote}</p>
+  <h3>Risks</h3><ul>${risks.map(r=>'<li>'+r+'</li>').join('')}</ul>
+  <h3>Rollout / experiment plan</h3><p>${plan}</p>
+  <h3>Next step</h3><p>${next}</p>
+  <div class="vp"><b>What I'd tell the VP in one sentence:</b> ${vp}</div>`;
+}
+function labels(){
+  $('o-weeks').textContent=el.weeks.value; $('o-k').textContent=el.k.value==='0'?'flat':el.k.value;
+  $('o-bar').textContent=(+el.bar.value).toFixed(1)+'%'; $('o-conf').textContent=el.conf.value+'%';
+  $('seedlbl').textContent='data seed '+dataSeed+' · draw seed '+drawSeed;
+}
+function update(regen){ if(regen) genData(); posterior(); labels(); renderKPIs(); renderMemo(); animate(); }
+let tmr; const deb=(regen)=>{clearTimeout(tmr);tmr=setTimeout(()=>update(regen),90);};
+el.weeks.addEventListener('input',()=>deb(true));
+['k','bar','conf'].forEach(id=>el[id].addEventListener('input',()=>deb(false)));
+$('resim').addEventListener('click',()=>{dataSeed+=1;update(true);});
+$('redraw').addEventListener('click',()=>{drawSeed+=1;update(false);});
+window.addEventListener('resize',()=>{sizeCanvas();draw(1);});
+sizeCanvas(); update(true);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>draw(1)).catch(()=>{});
+})();
+</script>
+</body>
+</html>
